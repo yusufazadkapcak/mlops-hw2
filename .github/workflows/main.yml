@@ -1,0 +1,58 @@
+name MLOps CICD Pipeline
+
+# Her push işleminde çalışsın
+on [push]
+
+jobs
+  build-and-test
+    runs-on ubuntu-latest
+
+    steps
+    # 1. Kodları GitHub'dan çek
+    - name Checkout Code
+      uses actionscheckout@v3
+
+    # 2. Python Ortamını Kur
+    - name Set up Python
+      uses actionssetup-python@v4
+      with
+        python-version '3.9'
+
+    # 3. Kütüphaneleri Yükle
+    - name Install Dependencies
+      run 
+        pip install -r requirements.txt
+        pip install flake8 pytest
+
+    # [cite_start]4. Linting (Code Analysis) - Hata varsa durdurur [cite 14, 15]
+    - name Lint with Flake8
+      run 
+        # E9, F63, F7, F82 kritik hatalarını kontrol et
+        flake8 src --count --select=E9,F63,F7,F82 --show-source --statistics
+
+    # [cite_start]5. Unit Tests (Integration) - Hızlı testler [cite 11]
+    - name Run Unit Tests
+      run pytest teststest_unit.py
+
+    # [cite_start]6. Component Tests (Integration) - Servis mantığı testi [cite 19]
+    - name Run Component Tests
+      run pytest teststest_component.py
+
+    # [cite_start]7. Build Docker Image (Delivery) [cite 21]
+    - name Build Docker Image
+      run docker build -t mlops-app .
+
+    # [cite_start]8. Smoke Test (Deployment) [cite 23]
+    - name Run Smoke Test
+      run 
+        # Konteynerı arka planda (-d) çalıştır
+        docker run -d -p 50005000 --name test-container mlops-app
+        
+        # 5 saniye bekle servisin uyanması için
+        sleep 5
+        
+        # Smoke test scriptini çalıştır
+        python smoke_test.py
+        
+        # Temizlik
+        docker stop test-container

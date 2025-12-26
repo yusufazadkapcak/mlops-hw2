@@ -1,11 +1,11 @@
-name MLOps CICD Pipeline
+name: MLOps CICD Pipeline
 
 # Her push işleminde çalışsın
-on [push]
+on: [push]
 
-jobs
-  build-and-test
-    runs-on ubuntu-latest
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
 
     steps
     # 1. Kodları GitHub'dan çek
